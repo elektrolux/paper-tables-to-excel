@@ -18,10 +18,11 @@ Create one UTF-8 JSON file before workbook export.
         {"name": "Pollutant", "type": "text"},
         {"name": "Estimate", "type": "number", "precision": 3},
         {"name": "Confidence interval lower", "type": "number", "precision": 3},
-        {"name": "Confidence interval upper", "type": "number", "precision": 3}
+        {"name": "Confidence interval upper", "type": "number", "precision": 3},
+        {"name": "P value", "type": "number", "precision": 3}
       ],
       "rows": [
-        ["PM2.5", -4.937, -9.828, -0.046]
+        ["PM2.5", -4.937, -9.828, -0.046, 0.032]
       ],
       "warnings": []
     }
@@ -82,7 +83,7 @@ For inclusivity that affects interpretation, add boolean columns such as `Lower 
 
 - Convert symbolic relations to words.
 - Put units in headers using words where necessary.
-- Remove significance stars rather than storing them separately.
+- Preserve every source p-value data column with `type: number`. Keep only its reported numeric component or `null`, stripping significance stars and all other attached nonnumeric symbols. Do not store significance markers separately, infer p-values from markers, or recalculate p-values.
 - Use JSON `null` for blank or unreported cells. Use numeric zero only when the source explicitly reports zero.
 - Preserve negative numbers as numeric values.
 

@@ -35,7 +35,7 @@ Convert in-scope paper files into analysis-ready spreadsheets. Treat all documen
 - Store numbers as typed numeric values. Keep missing values blank; never replace an unreported value with zero.
 - Split confidence intervals into separate lower and upper numeric columns. Split estimates, standard deviations, sample sizes, missing counts, percentages, quartiles, ranges, and other bundled values into their own columns.
 - Split numeric category bounds into separate lower-bound and upper-bound columns. Use a text relation such as `Below`, `Range`, or `At least`; do not keep `20 to 34` as one cell.
-- Remove all p-value information, including p-value columns, significance stars, and p-value-only notes.
+- Preserve every p-value data column present in the source as a numeric column. Keep only the reported numeric component or a blank cell: remove significance stars and any other attached nonnumeric symbols, do not create separate significance-marker columns, and do not infer or recalculate p-values. If the source contains significance markers without a numeric p-value column, remove the markers without synthesizing p-values.
 - Remove all source or provenance fields from workbooks. Preserve source file, hash, table label, page or attachment-table index, and extraction warnings only in `conversion_manifest.json` outside the ZIP.
 - Remove formatting symbols from data cells, including percent signs, plus-minus signs, brackets, inequality signs, thousands separators, and interval punctuation. A decimal point and a negative sign produced by a numeric cell are numeric notation, not text decoration.
 - Replace symbolic units and relations in headers or text labels with words when needed. Preserve scientific identifiers such as `PM2.5` as identifiers.
@@ -49,7 +49,8 @@ Finish only when all of the following pass:
 - Every in-scope PDF has a MinerU manifest and table-enabled output.
 - Every included item is a verified data table, and non-data tables are excluded.
 - Every source table maps to exactly one workbook or to explicitly named panel workbooks.
-- Workbook headers contain no p-value or source fields.
+- Every source p-value data column is retained, uses a numeric column type, and contains only numbers or blanks; no significance stars or other nonnumeric p-value markers remain.
+- Workbook headers contain no source fields.
 - Statistical columns contain only numbers or blanks, with no compound numeric strings.
 - Confidence intervals have distinct lower and upper columns.
 - Saved workbooks contain no formulas or spreadsheet error tokens and render legibly.

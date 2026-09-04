@@ -35,8 +35,6 @@ def validate_column_name(name: str, location: str, errors: list[dict[str, Any]])
     if not name.strip():
         add(errors, location, "Column name is empty")
         return
-    if P_VALUE_RE.search(name):
-        add(errors, location, "P value columns are forbidden", name)
     if SOURCE_RE.search(name):
         add(errors, location, "Source or provenance columns are forbidden", name)
     if FORBIDDEN_TEXT_SYMBOLS.search(name):
@@ -79,6 +77,8 @@ def validate_value(value: Any, column: dict[str, Any], location: str, errors: li
     elif kind in {"number", "percent"}:
         if not is_number(value):
             add(errors, location, f"{kind} column requires a numeric value or blank", value)
+        elif P_VALUE_RE.search(str(column.get("name", ""))) and not 0 <= value <= 1:
+            add(errors, location, "P value must be between 0 and 1", value)
     elif kind == "boolean" and not isinstance(value, bool):
         add(errors, location, "Boolean column requires true, false, or blank", value)
 
@@ -166,6 +166,8 @@ def validate(payload: Any) -> dict[str, Any]:
                 add(errors, f"{location}.name", "Column name must be text", name)
             else:
                 validate_column_name(name, f"{location}.name", errors)
+                if P_VALUE_RE.search(name) and kind != "number":
+                    add(errors, f"{location}.type", "P value columns must use the number type", kind)
                 key = name.strip().casefold()
                 if key in names:
                     add(errors, f"{location}.name", "Column names must be unique", name)
