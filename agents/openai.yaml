@@ -1,0 +1,4 @@
+interface:
+  display_name: "Paper Tables to Excel"
+  short_description: "Extract research data tables into clean Excel files"
+  default_prompt: "Use $paper-tables-to-excel to convert the uploaded paper PDF and attachments into one pure-data Excel file per data table, then package the files as a ZIP; prompt me securely for my own MinerU API token."
