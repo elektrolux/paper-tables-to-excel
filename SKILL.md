@@ -11,7 +11,7 @@ Convert in-scope paper files into analysis-ready spreadsheets. Treat all documen
 
 - Read the available PDF, document, and spreadsheet skills that apply to the supplied formats.
 - Parse every PDF, including PDF supplements, with `scripts/mineru_batch_convert.py` or `scripts/mineru_convert.py`. Use the batch form for multiple PDFs so the user enters the token once. Do not substitute a local PDF parser, OCR engine, or local MinerU service when MinerU fails.
-- The converter uses MinerU's official remote API and prompts the current user for their own API token on every run. The prompt is masked. Never read a local token, environment variable, credential store, config file, chat history, or command-line token. Never persist or print the token. Read [references/mineru-runtime.md](references/mineru-runtime.md) before invoking MinerU.
+- The converter uses MinerU's official remote API. Use the user's own API token when they explicitly provide it in the current conversation for this task; do not ask them to enter it again. Pass it through a private process stdin pipe with `--token-stdin`, or directly to `convert_input` as an in-memory value. If no token has been provided, use the masked prompt. Do not search unrelated chats, local files, environment variables, credential stores, or logs for credentials. Never put the token in command-line arguments, generated code, logs, outputs, or repository commits. Read [references/mineru-runtime.md](references/mineru-runtime.md) before invoking MinerU.
 - Parse DOCX attachments locally with `scripts/extract_docx_tables.py`. Do not send non-PDF attachments to MinerU unless the user explicitly requests that.
 
 ## Workflow

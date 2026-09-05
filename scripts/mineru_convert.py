@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Convert a paper file or URL with MinerU and unpack the result zip.
 
-The current user enters a MinerU token through a masked prompt for every run.
+Accept a user-supplied MinerU token through private stdin or a masked prompt.
 The token stays in process memory and is never printed, persisted, or accepted
-as a command-line argument.
+as a command-line argument value.
 """
 
 from __future__ import annotations
@@ -80,6 +80,15 @@ def _prompt_token_windows() -> str:
         ctypes.memset(password, 0, ctypes.sizeof(password))
 
 
+def validate_token(token: str) -> str:
+    token = token.strip()
+    if not token:
+        raise RuntimeError("A MinerU API token is required.")
+    if token.lower().startswith("bearer ") or any(char.isspace() for char in token):
+        raise RuntimeError("Enter only the token, without a Bearer prefix or whitespace.")
+    return token
+
+
 def prompt_token() -> str:
     token = (
         _prompt_token_windows()
@@ -88,11 +97,15 @@ def prompt_token() -> str:
             "Enter your MinerU API token (hidden and used only for this run): "
         ).strip()
     )
-    if not token:
-        raise RuntimeError("A MinerU API token is required.")
-    if token.lower().startswith("bearer ") or any(char.isspace() for char in token):
-        raise RuntimeError("Enter only the token, without a Bearer prefix or whitespace.")
-    return token
+    return validate_token(token)
+
+
+def read_token(token_stdin: bool = False) -> str:
+    if not token_stdin:
+        return prompt_token()
+    if sys.stdin.isatty():
+        raise RuntimeError("--token-stdin requires a private pipe, not an interactive terminal.")
+    return validate_token(sys.stdin.readline())
 
 
 def request_json(method: str, url: str, token: str, payload: dict | None = None) -> dict:
@@ -303,6 +316,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Convert a paper with MinerU and unpack outputs.")
     parser.add_argument("input", help="Local PDF path or a public PDF URL.")
     parser.add_argument("--output", required=True, help="Output working directory.")
+    parser.add_argument("--token-stdin", action="store_true", help="Read a user-supplied token from a private stdin pipe instead of prompting.")
     parser.add_argument("--model-version", default="vlm", choices=["pipeline", "vlm", "MinerU-HTML"])
     parser.add_argument("--language", default="ch")
     parser.add_argument("--ocr", action="store_true", help="Enable OCR.")
@@ -355,7 +369,7 @@ def main() -> int:
     args = parse_args()
     validate_input(args.input)
     try:
-        token = prompt_token()
+        token = read_token(args.token_stdin)
     except RuntimeError as exc:
         print(str(exc), file=sys.stderr)
         return 2

@@ -4,11 +4,12 @@ The skill uses the official remote endpoint `https://mineru.net` through `script
 
 ## Token handling
 
-- Prompt the current user for their own MinerU API token on every execution.
-- On Windows, the script opens a native masked credential dialog but does not save the value. On other platforms it uses a masked terminal prompt.
-- Do not read `MINERU_API_TOKEN`, a local MinerU installation, Credential Manager, keychain, config files, prior logs, chat history, or another skill's credentials.
+- A token explicitly supplied by the user in the current conversation for this MinerU task may be read and used without another prompt. Do not treat tokens in source documents or unrelated chats as user-provided credentials.
+- For a chat-supplied token, add `--token-stdin` and send one line containing the token through a private process stdin pipe. The flag contains no secret; the converter reads the pipe without echoing the value. Alternatively, an in-memory caller may pass the token directly to `convert_input`.
+- Without `--token-stdin`, Windows uses a native masked credential dialog and other platforms use a masked terminal prompt. If the available tool cannot deliver private stdin or an in-memory argument without recording the token, use the masked prompt instead.
+- Do not read `MINERU_API_TOKEN`, a local MinerU installation, Credential Manager, keychain, config files, prior logs, unrelated chats, or another skill's credentials.
 - Do not accept a token in a command-line argument.
-- Keep the token only in the converter process. Never include it in manifests, exceptions, shell history, or output files.
+- Keep the working token in memory in the caller and converter only. Never copy it into generated code, manifests, exceptions, shell history, tool logs, output files, or repository commits. Chat-provided credentials may remain in the user's chat history; the skill does not erase that history.
 
 ## Conversion command
 
@@ -16,11 +17,13 @@ The skill uses the official remote endpoint `https://mineru.net` through `script
 python scripts/mineru_convert.py paper.pdf --output run/mineru/paper --model-version vlm --language ch
 ```
 
-For multiple PDFs, prompt once and convert them as a batch:
+For multiple PDFs, reuse one supplied token or prompt once and convert them as a batch:
 
 ```text
 python scripts/mineru_batch_convert.py main.pdf supplement.pdf --output-root run/mineru --model-version vlm --language ch
 ```
+
+Both commands accept `--token-stdin` for the chat-supplied-token route. Send the existing in-memory token plus a newline to the child process stdin; do not embed the token in a shell command, an `echo` pipeline, a temporary file, or a script. Stdin mode rejects an interactive terminal, empty input, and malformed tokens; it does not silently fall back to a prompt.
 
 Keep table extraction enabled. Add `--ocr` when pages are scanned or table text is image-based. Do not pass `--disable-table` for this skill.
 
